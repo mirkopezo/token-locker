@@ -20,6 +20,21 @@ contract TokenLocker {
     Counters.Counter private _unlockedLocksNumber;
     Lock[] private _allLocks;
 
+    event TokensLocked(
+        uint256 lockId,
+        address tokenContract,
+        address locker,
+        uint256 amount,
+        uint256 unlockTime
+    );
+
+    event TokensUnlocked(
+        uint256 lockId,
+        address tokenContract,
+        address locker,
+        uint256 amount
+    );
+
     function lockTokens(
         address tokenContract,
         uint256 amount,
@@ -39,6 +54,13 @@ contract TokenLocker {
             )
         );
         _lockedLocksNumber.increment();
+        emit TokensLocked(
+            currentLockId,
+            tokenContract,
+            msg.sender,
+            amount,
+            unlockTime
+        );
     }
 
     function withdrawTokens(address tokenContract, uint256 lockId) public {
@@ -49,6 +71,7 @@ contract TokenLocker {
         _allLocks[lockId].withdrawn = true;
         _unlockedLocksNumber.increment();
         IERC20(tokenContract).transfer(msg.sender, lock.amount);
+        emit TokensUnlocked(lockId, tokenContract, msg.sender, lock.amount);
     }
 
     /* --- Getters --- */
